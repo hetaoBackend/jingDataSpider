@@ -2,7 +2,12 @@
 #-*- coding:utf-8 -*-
 import requests
 import json
+import pymysql
+import re
+from datetime import datetime
 
+db = pymysql.connect("localhost", "root", "12345678", "test", charset='utf8')
+cursor = db.cursor()
 
 # get jingData info
 def getJingData(page_index, page_size):
@@ -21,21 +26,80 @@ def getJingData(page_index, page_size):
         'type':'nq_stock'
     }
     html = requests.post(url=url,params=paramters,headers=header)
-    print(html.text)
     first_res = json.loads(html.text.strip())
     ## data_list is the jingData info, is a list of dict
-    data_list = first_res['data']
+    data_list = first_res['data']['list']
     return data_list
 
 # ToDo:you should construct the database && write the useful data to database
+
+# 插入financing_data表
+def insert_finance(finance_data):
+
+    source_from = "2001-01-01 00:00:00"
+    if finance_data['annual_turnover'] and len(finance_data['annual_turnover']['source_from']) > 0:
+        date_all = re.findall(r"(\d{4}-\d{1,2}-\d{1,2})", finance_data['annual_turnover']['source_from'][0])
+        if len(date_all) > 0:
+            source_from = date_all[0]
+
+    sql = """
+                INSERT INTO financing_data(`name`, `full_name`, `stock_short_name`, `establish_date`,\
+                 `market_value`, `industry`, `annual_turnover`, `annual_profit`, \
+                 `source_from`, `address`, `operation_tags`,`tags`, `short_description`,\
+                  `description`, `finance_phase`, `latest_investment_finance_date`, `total_investors`,\
+                  `pe_financing_amount`, `pe_heat_value`, `pe_heat_change_pct`,`ipo_financing_amount`, \
+                  `listed_date`, `share_placement_amount`, `total_financing_amount`, `close_price`, \
+                  `change_price_pct_1m`, `change_price_pct_3m`, `turnover_volume`, `turnover_value`, \
+                  `eps`, `roe`, `pe_ttm`, `ps`, `pb`, `total_shares`, `circulation_shares`) \
+                VALUES ("{0}", "{1}", "{2}","{3}",{4},"{5}",{6},{7},"{8}","{9}","{10}","{11}",'{12}','{13}', \
+                "{14}","{15}", "{16}",{17}, {18},{19},{20},"{21}",{22},{23},{24},{25},{26},{27},\
+                {28},{29},{30},{31},{32},{33},{34},{35})""" \
+        .format(finance_data['name'], finance_data['full_name'], finance_data['stock_short_name'], get_date(finance_data['establish_date']), \
+                get_value(finance_data['market_value'], "value"), get_value(finance_data['industry'], "label"), get_value(finance_data['annual_turnover'], "value"), \
+                get_value(finance_data['annual_profit'], "value"), source_from, finance_data['address'], finance_data['operation_tags'], \
+                finance_data['tags'], finance_data['short_description'], finance_data['description'],get_value(finance_data['finance_phase'], "label"), \
+                get_date(finance_data['latest_investment_finance_date']), finance_data['total_investors'], get_value(finance_data['pe_financing_amount'], "value"),\
+                get_num(finance_data['pe_heat_value']), get_num(finance_data['pe_heat_change_pct']),
+                get_value(finance_data['ipo_financing_amount'], "value"), get_date(finance_data['listed_date']),get_value(finance_data['share_placement_amount'], 'value'),\
+                get_value(finance_data['total_financing_amount'], 'value'),get_value(finance_data['close_price'], 'value'), \
+                get_num(finance_data['change_price_pct_1m']), get_value(finance_data['change_price'], 'value'),\
+                get_num(finance_data['change_price_pct_1m']), get_num(finance_data['change_price_pct_3m']), \
+                get_num(finance_data['turnover_volume']), get_value(finance_data['turnover_value'], 'value'), \
+                get_value(finance_data['eps'], 'value'), get_num(finance_data['roe']), \
+                get_num(finance_data['pe_ttm']), get_num(finance_data['ps']), \
+                get_num(finance_data['pb']), get_num(finance_data['total_shares']), \
+                get_num(finance_data['circulation_shares'])
+                )
+
+    try:
+        cursor.execute(sql)
+        db.commit()
+    except:
+        print(sql)
+        db.rollback()
+
+def get_value(data_dict, key):
+    value = "null"
+    if data_dict and key in data_dict:
+        value = data_dict[key]
+    return value
+
+def get_num(raw_num):
+    return 'null' if not raw_num else raw_num
+
+def get_date(raw_date):
+    return "2001-01-01" if not raw_date else raw_date
 
 if __name__ == "__main__":
     i = 1
     page_size = 20
     while i:
+        print("---curpage:{}---".format(i))
         data_list = getJingData(i, page_size)
         if not data_list:
             break
-        print(data_list)
+        for finance_data in data_list:
+            insert_finance(finance_data)
         i += 1
+    db.close()
 
