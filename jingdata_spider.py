@@ -49,11 +49,11 @@ def insert_finance(finance_data):
                   `description`, `finance_phase`, `latest_investment_finance_date`, `total_investors`,\
                   `pe_financing_amount`, `pe_heat_value`, `pe_heat_change_pct`,`ipo_financing_amount`, \
                   `listed_date`, `share_placement_amount`, `total_financing_amount`, `close_price`, \
-                  `change_price_pct_1m`, `change_price_pct_3m`, `turnover_volume`, `turnover_value`, \
+                  `change_price_pct`, `change_price`, `change_price_pct_1m`, `change_price_pct_3m`, `turnover_volume`, `turnover_value`, \
                   `eps`, `roe`, `pe_ttm`, `ps`, `pb`, `total_shares`, `circulation_shares`) \
                 VALUES ("{0}", "{1}", "{2}","{3}",{4},"{5}",{6},{7},"{8}","{9}","{10}","{11}",'{12}','{13}', \
                 "{14}","{15}", "{16}",{17}, {18},{19},{20},"{21}",{22},{23},{24},{25},{26},{27},\
-                {28},{29},{30},{31},{32},{33},{34},{35})""" \
+                {28},{29},{30},{31},{32},{33},{34},{35},{36},{37})""" \
         .format(finance_data['name'], finance_data['full_name'], finance_data['stock_short_name'], get_date(finance_data['establish_date']), \
                 get_value(finance_data['market_value'], "value"), get_value(finance_data['industry'], "label"), get_value(finance_data['annual_turnover'], "value"), \
                 get_value(finance_data['annual_profit'], "value"), source_from, finance_data['address'], finance_data['operation_tags'], \
@@ -62,7 +62,7 @@ def insert_finance(finance_data):
                 get_num(finance_data['pe_heat_value']), get_num(finance_data['pe_heat_change_pct']),
                 get_value(finance_data['ipo_financing_amount'], "value"), get_date(finance_data['listed_date']),get_value(finance_data['share_placement_amount'], 'value'),\
                 get_value(finance_data['total_financing_amount'], 'value'),get_value(finance_data['close_price'], 'value'), \
-                get_num(finance_data['change_price_pct_1m']), get_value(finance_data['change_price'], 'value'),\
+                get_num(finance_data['change_price_pct']), get_value(finance_data['change_price'], 'value'),\
                 get_num(finance_data['change_price_pct_1m']), get_num(finance_data['change_price_pct_3m']), \
                 get_num(finance_data['turnover_volume']), get_value(finance_data['turnover_value'], 'value'), \
                 get_value(finance_data['eps'], 'value'), get_num(finance_data['roe']), \
